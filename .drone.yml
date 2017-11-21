@@ -1,0 +1,36 @@
+pipeline:
+  build_docker_image:
+    image: docker:17.07.0
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - docker build -t quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_COMMIT_SHA} .
+    when:
+      event:
+        - push
+        - tag
+
+  image_to_quay:
+    image: docker:17.07.0
+    secrets: [docker_password]
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - docker login -u="ukhomeofficedigital+drone_docker_ebs_snapshot" -p=$${DOCKER_PASSWORD} quay.io
+      - docker tag quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_COMMIT_SHA} quay.io/ukhomeofficedigital/ebs-snapshot:latest
+      - docker push quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_COMMIT_SHA}
+      - docker push quay.io/ukhomeofficedigital/ebs-snapshot:latest
+    when:
+      event: push
+
+  tagged_image_to_quay:
+    image: docker:17.07.0
+    secrets: [docker_password]
+    environment:
+      - DOCKER_HOST=tcp://172.17.0.1:2375
+    commands:
+      - docker login -u="ukhomeofficedigital+drone_docker_ebs_snapshot" -p=$${DOCKER_PASSWORD} quay.io
+      - docker tag quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_COMMIT_SHA} quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_TAG}
+      - docker push quay.io/ukhomeofficedigital/ebs-snapshot:$${DRONE_TAG}
+    when:
+      event: tag
