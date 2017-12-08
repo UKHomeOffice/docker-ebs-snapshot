@@ -34,6 +34,12 @@ for volume in (volumes_to_backup["Volumes"]):
         VolumeId=vol_id,
     )
 
+    # Add tags from the original volume
+    ec.create_tags(
+        Resources=[snap['SnapshotId']],
+        Tags=volume['Tags'],
+    )
+
     to_tag[retention_days].append(snap['SnapshotId'])
 
     print "Retaining snapshot %s of volume %s for %d days" % (
@@ -46,14 +52,10 @@ for volume in (volumes_to_backup["Volumes"]):
         delete_date = datetime.date.today() + datetime.timedelta(days=retention_days)
         delete_fmt = delete_date.strftime('%Y-%m-%d')
 
-        # Add tags from the original volume
-        tags = volume['Tags']
-        tags.append({'Key': 'DeleteOn', 'Value': delete_fmt})
-
         print "Will delete %d snapshots on %s" % (len(to_tag[retention_days]), delete_fmt)
         ec.create_tags(
             Resources=to_tag[retention_days],
-            Tags=tags
+            Tags=[{'Key': 'DeleteOn', 'Value': delete_fmt}],
         )
 
     # Delete snapshots with a delete on = today
