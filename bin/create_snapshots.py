@@ -5,7 +5,7 @@ import re
 from botocore.exceptions import ClientError
 
 # Set default retention days
-RETENTION_DAYS = 10
+retention_days = 10
 
 ec = boto3.client('ec2')
 
@@ -21,12 +21,9 @@ for volume in (volumes_to_backup["Volumes"]):
     try:
         for t in volume['Tags']:
             if t['Key'] == 'Retention':
-                retention_days = t['Value']
-            else:
-                retention_days = RETENTION_DAYS
+                retention_days = int(t['Value'])
     except ClientError as e:
         print "using default retention"
-        retention_days = RETENTION_DAYS
 
     vol_id = volume['VolumeId']
 
