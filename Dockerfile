@@ -1,12 +1,12 @@
-FROM alpine:3.6
+FROM alpine:3.7
 
 RUN apk -Uuv add --no-cache groff less python py-pip && \
     pip install boto3 && \
     apk --purge -v del py-pip
 
-RUN adduser -S ebs
+RUN adduser -S -u 1000 ebs
 
-USER ebs
+USER 1000
 
 ADD bin/* /usr/local/bin/
 
